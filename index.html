@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Cle4ner Gang DVD Game</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: black;
+      height: 100%;
+      user-select: none;
+    }
+
+    #text, #decoy {
+      position: absolute;
+      font-size: 48px;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      white-space: nowrap;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      cursor: pointer;
+      z-index: 2;
+      display: none;
+    }
+
+    #text {
+      animation: rainbow 2s linear infinite;
+    }
+
+    #score {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      color: lime;
+      font-family: monospace;
+      font-size: 24px;
+      z-index: 3;
+    }
+
+    #timer {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      color: red;
+      font-family: monospace;
+      font-size: 24px;
+      z-index: 3;
+    }
+
+    .explode {
+      transform: scale(5) rotate(720deg);
+      opacity: 0;
+    }
+
+    @keyframes rainbow {
+      0%   { color: red; }
+      14%  { color: orange; }
+      28%  { color: yellow; }
+      42%  { color: lime; }
+      57%  { color: cyan; }
+      71%  { color: blue; }
+      85%  { color: violet; }
+      100% { color: red; }
+    }
+
+    #crt {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.02),
+        rgba(255, 255, 255, 0.02) 2px,
+        transparent 2px,
+        transparent 4px
+      );
+      z-index: 1;
+    }
+
+    #menu {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: black;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    #menu h1 {
+      font-size: 64px;
+      animation: rainbow 1s infinite, glitch 0.3s infinite;
+    }
+
+    #menu p {
+      margin-top: 40px;
+      font-size: 20px;
+      color: gray;
+    }
+
+    @keyframes glitch {
+      0% { transform: translate(0); }
+      20% { transform: translate(-2px, 2px); }
+      40% { transform: translate(2px, -2px); }
+      60% { transform: translate(-1px, 1px); }
+      80% { transform: translate(1px, -1px); }
+      100% { transform: translate(0); }
+    }
+
+    #startBtn, #restartBtn {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    #finalScoreboard {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: lime;
+      padding: 20px;
+      border: 2px solid lime;
+      font-family: monospace;
+      z-index: 5;
+    }
+  </style>
+</head>
+<body>
+  <div id="menu">
+    <h1>Cle4ner Gang</h1>
+    <button id="startBtn">Démarrer le jeu</button>
+    <p>Créé par Simlesauvage</p>
+  </div>
+
+  <div id="score">Score: 0</div>
+  <div id="timer">Temps: 5</div>
+  <div id="text">Cle4ner Gang</div>
+  <div id="decoy">🛸</div>
+  <div id="crt"></div>
+  <div id="finalScoreboard">
+    <h3>Score final</h3>
+    <p id="scoreList"></p>
+    <button id="restartBtn">Retour au menu</button>
+  </div>
+  <audio id="boom" src="https://cdn.pixabay.com/download/audio/2021/08/08/audio_7c5dc92b50.mp3?filename=explosion-6055.mp3"></audio>
+
+  <script>
+    const text = document.getElementById('text');
+    const decoy = document.getElementById('decoy');
+    const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+    const menu = document.getElementById('menu');
+    const startBtn = document.getElementById('startBtn');
+    const boom = document.getElementById('boom');
+    const scoreboard = document.getElementById('finalScoreboard');
+    const scoreList = document.getElementById('scoreList');
+    const restartBtn = document.getElementById('restartBtn');
+
+    let x = 100, y = 100;
+    let dx = 2, dy = 2;
+    let visible = true;
+    let score = 0;
+    let timer = 5;
+    let countdown;
+    let gameRunning = false;
+    let decoyVisible = false;
+
+    function move() {
+      if (visible && gameRunning) {
+        const rect = text.getBoundingClientRect();
+        const winWidth = window.innerWidth;
+        const winHeight = window.innerHeight;
+
+        if (x + rect.width >= winWidth || x <= 0) dx *= -1;
+        if (y + rect.height >= winHeight || y <= 0) dy *= -1;
+
+        x += dx;
+        y += dy;
+
+        text.style.left = x + 'px';
+        text.style.top = y + 'px';
+      }
+
+      requestAnimationFrame(move);
+    }
+
+    function startTimer() {
+      timer = 5;
+      timerDisplay.textContent = "Temps: " + timer;
+      clearInterval(countdown);
+      countdown = setInterval(() => {
+        timer--;
+        timerDisplay.textContent = "Temps: " + timer;
+        if (timer <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function endGame() {
+      clearInterval(countdown);
+      gameRunning = false;
+      text.style.display = "none";
+      decoy.style.display = "none";
+
+      let player = prompt("Entrez votre nom pour le tableau des scores :") || "Anonyme";
+      let scores = JSON.parse(localStorage.getItem("scores")) || [];
+      scores.push(`${player}: ${score}`);
+      localStorage.setItem("scores", JSON.stringify(scores));
+
+      scoreboard.style.display = "block";
+      scoreList.innerHTML = "Scores précédents :<br>" + scores.join("<br>");
+    }
+
+    text.addEventListener('click', () => {
+      text.classList.add('explode');
+      visible = false;
+      boom.currentTime = 0;
+      boom.play();
+      score++;
+      scoreDisplay.textContent = "Score: " + score;
+      startTimer();
+
+      // Decoy appears on every 4th or 6th score
+      if (score % 4 === 0 || score % 6 === 0) {
+        decoy.style.display = "block";
+        decoy.style.left = Math.random() * (window.innerWidth - 100) + "px";
+        decoy.style.top = Math.random() * (window.innerHeight - 100) + "px";
+      } else {
+        decoy.style.display = "none";
+      }
+
+      // Speed up every 6 points
+      if (score % 6 === 0) {
+        dx *= 1.5;
+        dy *= 1.5;
+      }
+
+      setTimeout(() => {
+        text.classList.remove('explode');
+        visible = true;
+      }, 1000);
+    });
+
+    startBtn.addEventListener('click', () => {
+      menu.style.display = "none";
+      text.style.display = "block";
+      scoreboard.style.display = "none";
+      score = 0;
+      dx = dy = 2;
+      scoreDisplay.textContent = "Score: 0";
+      visible = true;
+      gameRunning = true;
+      startTimer();
+    });
+
+    restartBtn.addEventListener('click', () => {
+      scoreboard.style.display = "none";
+      menu.style.display = "flex";
+    });
+
+    move();
+  </script>
+</body>
+</html>
