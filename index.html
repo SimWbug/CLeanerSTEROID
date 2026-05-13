@@ -1,279 +1,1104 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Cle4ner Gang DVD Game</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background-color: black;
-      height: 100%;
-      user-select: none;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CleanGang — Server Pack</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --bg2: #141414;
+    --bg3: #1a1a1a;
+    --card: #1e1e1e;
+    --border: #2a2a2a;
+    --accent: #e8c840;
+    --accent2: #f0d060;
+    --white: #f0f0f0;
+    --gray: #888;
+    --gray2: #555;
+    --red: #e84040;
+  }
 
-    #text, #decoy {
-      position: absolute;
-      font-size: 48px;
-      font-weight: bold;
-      font-family: Arial, sans-serif;
-      white-space: nowrap;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-      cursor: pointer;
-      z-index: 2;
-      display: none;
-    }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
 
-    #text {
-      animation: rainbow 2s linear infinite;
-    }
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
 
-    #score {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      color: lime;
-      font-family: monospace;
-      font-size: 24px;
-      z-index: 3;
-    }
+  /* SCANLINE OVERLAY */
+  body::after {
+    content:'';
+    position:fixed; inset:0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events:none;
+    z-index:9998;
+  }
 
-    #timer {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      color: red;
-      font-family: monospace;
-      font-size: 24px;
-      z-index: 3;
-    }
+  /* ── NAV ── */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0.8rem 3rem;
+    background:rgba(13,13,13,0.95);
+    backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border);
+  }
 
-    .explode {
-      transform: scale(5) rotate(720deg);
-      opacity: 0;
-    }
+  .nav-logo {
+    display:flex; align-items:center; gap:0.7rem;
+  }
 
-    @keyframes rainbow {
-      0%   { color: red; }
-      14%  { color: orange; }
-      28%  { color: yellow; }
-      42%  { color: lime; }
-      57%  { color: cyan; }
-      71%  { color: blue; }
-      85%  { color: violet; }
-      100% { color: red; }
-    }
+  .nav-logo img {
+    width:36px; height:36px; border-radius:6px;
+    border:1px solid var(--accent);
+  }
 
-    #crt {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, 0.02),
-        rgba(255, 255, 255, 0.02) 2px,
-        transparent 2px,
-        transparent 4px
-      );
-      z-index: 1;
-    }
+  .nav-logo span {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:1.4rem;
+    letter-spacing:0.08em;
+    color:var(--white);
+  }
 
-    #menu {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      background: black;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
+  .nav-logo span em {
+    color:var(--accent);
+    font-style:normal;
+  }
 
-    #menu h1 {
-      font-size: 64px;
-      animation: rainbow 1s infinite, glitch 0.3s infinite;
-    }
+  nav ul {
+    list-style:none;
+    display:flex;
+    gap:2.5rem;
+  }
 
-    #menu p {
-      margin-top: 40px;
-      font-size: 20px;
-      color: gray;
-    }
+  nav ul a {
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.85rem;
+    font-weight:600;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    color:var(--gray);
+    text-decoration:none;
+    transition:color 0.2s;
+  }
 
-    @keyframes glitch {
-      0% { transform: translate(0); }
-      20% { transform: translate(-2px, 2px); }
-      40% { transform: translate(2px, -2px); }
-      60% { transform: translate(-1px, 1px); }
-      80% { transform: translate(1px, -1px); }
-      100% { transform: translate(0); }
-    }
+  nav ul a:hover { color:var(--accent); }
 
-    #startBtn, #restartBtn {
-      margin-top: 30px;
-      padding: 10px 20px;
-      font-size: 20px;
-      cursor: pointer;
-    }
+  /* ── HERO ── */
+  #hero {
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:7rem 2rem 4rem;
+    position:relative;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 100%, rgba(232,200,64,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 80% 60% at 50% 50%, rgba(232,200,64,0.03) 0%, transparent 60%),
+      var(--bg);
+  }
 
-    #finalScoreboard {
-      display: none;
-      position: fixed;
-      top: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.8);
-      color: lime;
-      padding: 20px;
-      border: 2px solid lime;
-      font-family: monospace;
-      z-index: 5;
-    }
-  </style>
+  /* Grid lines background */
+  #hero::before {
+    content:'';
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(232,200,64,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,200,64,0.04) 1px, transparent 1px);
+    background-size:60px 60px;
+    pointer-events:none;
+  }
+
+  .hero-badge {
+    display:inline-flex; align-items:center; gap:0.5rem;
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.75rem;
+    font-weight:700;
+    letter-spacing:0.25em;
+    text-transform:uppercase;
+    color:var(--accent);
+    border:1px solid rgba(232,200,64,0.3);
+    background:rgba(232,200,64,0.06);
+    padding:0.35rem 1.1rem;
+    border-radius:3px;
+    margin-bottom:2rem;
+    animation:fadeUp 0.5s ease both;
+  }
+
+  .logo-display {
+    width:160px; height:160px;
+    border-radius:20px;
+    margin:0 auto 2rem;
+    overflow:hidden;
+    border:2px solid var(--accent);
+    box-shadow:0 0 40px rgba(232,200,64,0.25), 0 0 80px rgba(232,200,64,0.1);
+    animation:fadeUp 0.5s ease 0.05s both;
+    position:relative;
+  }
+
+  .logo-display img {
+    width:100%; height:100%; object-fit:cover;
+  }
+
+  h1 {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:clamp(4rem, 10vw, 8rem);
+    letter-spacing:0.04em;
+    line-height:0.9;
+    color:var(--white);
+    animation:fadeUp 0.6s ease 0.1s both;
+    position:relative;
+  }
+
+  h1 .accent { color:var(--accent); }
+
+  .hero-tagline {
+    font-family:'Rajdhani', sans-serif;
+    font-size:clamp(1rem, 2vw, 1.25rem);
+    font-weight:500;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    color:var(--gray);
+    margin:0.6rem 0 0;
+    animation:fadeUp 0.6s ease 0.15s both;
+  }
+
+  .hero-desc {
+    font-family:'Inter', sans-serif;
+    font-size:1.05rem;
+    font-weight:300;
+    color:rgba(240,240,240,0.7);
+    max-width:600px;
+    line-height:1.8;
+    margin:1.8rem auto 2.5rem;
+    animation:fadeUp 0.6s ease 0.2s both;
+  }
+
+  .btn-download {
+    display:inline-flex; align-items:center; gap:0.8rem;
+    background:var(--accent);
+    color:#0d0d0d;
+    font-family:'Rajdhani', sans-serif;
+    font-size:1rem;
+    font-weight:700;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    padding:1rem 2.5rem;
+    border-radius:4px;
+    text-decoration:none;
+    box-shadow:0 4px 24px rgba(232,200,64,0.35);
+    transition:transform 0.2s, box-shadow 0.2s, background 0.2s;
+    animation:fadeUp 0.6s ease 0.25s both;
+  }
+
+  .btn-download:hover {
+    transform:translateY(-3px);
+    background:var(--accent2);
+    box-shadow:0 8px 40px rgba(232,200,64,0.5);
+  }
+
+  .hero-stats {
+    display:flex; gap:4rem;
+    margin-top:4rem;
+    animation:fadeUp 0.6s ease 0.3s both;
+  }
+
+  .stat { text-align:center; }
+  .stat-num {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:2.5rem;
+    letter-spacing:0.05em;
+    color:var(--accent);
+    display:block;
+    line-height:1;
+  }
+  .stat-label {
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.75rem;
+    font-weight:600;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--gray);
+    margin-top:0.2rem;
+  }
+
+  .stat-divider {
+    width:1px;
+    background:var(--border);
+    align-self:stretch;
+  }
+
+  /* ── SECTION BASE ── */
+  .section-wrap {
+    padding:5rem 2rem;
+    max-width:1100px;
+    margin:0 auto;
+  }
+
+  .section-tag {
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.75rem;
+    font-weight:700;
+    letter-spacing:0.25em;
+    text-transform:uppercase;
+    color:var(--accent);
+    display:flex; align-items:center; gap:0.6rem;
+    margin-bottom:0.8rem;
+  }
+
+  .section-tag::before {
+    content:'';
+    display:inline-block;
+    width:24px; height:2px;
+    background:var(--accent);
+  }
+
+  h2 {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:clamp(2rem, 5vw, 3.5rem);
+    letter-spacing:0.04em;
+    color:var(--white);
+    margin-bottom:0.8rem;
+    line-height:1;
+  }
+
+  h2 .accent { color:var(--accent); }
+
+  .section-intro {
+    font-family:'Inter', sans-serif;
+    font-size:1rem;
+    font-weight:300;
+    color:rgba(240,240,240,0.6);
+    max-width:580px;
+    line-height:1.8;
+    margin-bottom:3rem;
+  }
+
+  /* ── ABOUT CARDS ── */
+  .about-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+    border-radius:8px;
+    overflow:hidden;
+  }
+
+  .about-card {
+    background:var(--card);
+    padding:1.8rem;
+    transition:background 0.2s;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .about-card::before {
+    content:'';
+    position:absolute;
+    top:0; left:0; right:0;
+    height:2px;
+    background:var(--cat-color, var(--accent));
+    transform:scaleX(0);
+    transform-origin:left;
+    transition:transform 0.3s;
+  }
+
+  .about-card:hover { background:#222; }
+  .about-card:hover::before { transform:scaleX(1); }
+
+  .about-icon {
+    font-size:1.8rem; margin-bottom:0.8rem; display:block;
+  }
+
+  .about-card h3 {
+    font-family:'Rajdhani', sans-serif;
+    font-size:1.05rem;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--white);
+    margin-bottom:0.5rem;
+  }
+
+  .about-card p {
+    font-family:'Inter', sans-serif;
+    font-size:0.85rem;
+    font-weight:300;
+    color:rgba(240,240,240,0.55);
+    line-height:1.6;
+  }
+
+  /* ── WIKI ── */
+  #wiki { background:var(--bg2); }
+
+  .wiki-inner {
+    padding:5rem 2rem;
+    max-width:1200px;
+    margin:0 auto;
+  }
+
+  .search-row {
+    display:flex; gap:1rem; flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:1.5rem;
+  }
+
+  .search-box {
+    flex:1; min-width:240px; max-width:400px;
+    padding:0.65rem 1.1rem;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:4px;
+    color:var(--white);
+    font-family:'Inter', sans-serif;
+    font-size:0.9rem;
+    outline:none;
+    transition:border-color 0.2s;
+  }
+
+  .search-box:focus { border-color:var(--accent); }
+  .search-box::placeholder { color:var(--gray2); }
+
+  .wiki-filters {
+    display:flex; flex-wrap:wrap; gap:0.5rem;
+    margin-bottom:2rem;
+  }
+
+  .filter-btn {
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.78rem;
+    font-weight:700;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    padding:0.35rem 1rem;
+    border-radius:3px;
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--gray);
+    cursor:pointer;
+    transition:all 0.15s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    background:var(--accent);
+    color:#0d0d0d;
+    border-color:var(--accent);
+  }
+
+  .mods-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+    gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+    border-radius:6px;
+    overflow:hidden;
+  }
+
+  .mod-card {
+    background:var(--card);
+    padding:1.1rem 1.3rem;
+    display:flex; gap:0.9rem; align-items:flex-start;
+    transition:background 0.15s;
+  }
+
+  .mod-card:hover { background:#242424; }
+  .mod-card.hidden { display:none; }
+
+  .mod-emoji {
+    font-size:1.5rem; flex-shrink:0; margin-top:0.1rem;
+  }
+
+  .mod-info h4 {
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.95rem;
+    font-weight:700;
+    letter-spacing:0.05em;
+    color:var(--white);
+    margin-bottom:0.25rem;
+    text-transform:uppercase;
+  }
+
+  .mod-info p {
+    font-family:'Inter', sans-serif;
+    font-size:0.8rem;
+    font-weight:300;
+    color:rgba(240,240,240,0.5);
+    line-height:1.5;
+    margin-bottom:0.4rem;
+  }
+
+  .mod-tags { display:flex; flex-wrap:wrap; gap:0.3rem; }
+
+  .mod-tag {
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.68rem;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:0.1rem 0.5rem;
+    border-radius:2px;
+    background:rgba(232,200,64,0.1);
+    color:var(--accent);
+    border:1px solid rgba(232,200,64,0.2);
+  }
+
+  .mod-link {
+    display:inline-block;
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.75rem;
+    font-weight:600;
+    letter-spacing:0.08em;
+    color:var(--accent);
+    text-decoration:none;
+    margin-top:0.35rem;
+    opacity:0.8;
+    transition:opacity 0.15s;
+  }
+  .mod-link:hover { opacity:1; text-decoration:underline; }
+
+  .no-results {
+    text-align:center; padding:3rem;
+    font-family:'Inter', sans-serif;
+    color:var(--gray);
+    font-style:italic;
+    display:none;
+    background:var(--card);
+  }
+
+  .count-badge {
+    display:inline-block;
+    background:rgba(232,200,64,0.15);
+    color:var(--accent);
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.72rem;
+    font-weight:700;
+    padding:0.1rem 0.45rem;
+    border-radius:2px;
+    margin-left:0.3rem;
+    letter-spacing:0.05em;
+    vertical-align:middle;
+  }
+
+  /* ── BANNER ── */
+  .banner {
+    background:var(--accent);
+    padding:5rem 2rem;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .banner::before {
+    content:'';
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(0,0,0,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.08) 1px, transparent 1px);
+    background-size:40px 40px;
+  }
+
+  .banner h2 {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:clamp(2rem, 6vw, 4rem);
+    letter-spacing:0.05em;
+    color:#0d0d0d;
+    margin-bottom:0.8rem;
+    position:relative;
+  }
+
+  .banner p {
+    font-family:'Inter', sans-serif;
+    font-size:1rem;
+    font-weight:400;
+    color:rgba(13,13,13,0.75);
+    max-width:520px;
+    margin:0 auto 2.5rem;
+    line-height:1.7;
+    position:relative;
+  }
+
+  .btn-dl-dark {
+    display:inline-flex; align-items:center; gap:0.8rem;
+    background:#0d0d0d;
+    color:var(--accent);
+    font-family:'Rajdhani', sans-serif;
+    font-size:1rem;
+    font-weight:700;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    padding:1rem 2.5rem;
+    border-radius:4px;
+    text-decoration:none;
+    box-shadow:0 6px 24px rgba(0,0,0,0.3);
+    transition:transform 0.2s, box-shadow 0.2s;
+    position:relative;
+  }
+
+  .btn-dl-dark:hover {
+    transform:translateY(-3px);
+    box-shadow:0 12px 36px rgba(0,0,0,0.4);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background:#080808;
+    border-top:1px solid var(--border);
+    text-align:center;
+    padding:2.5rem;
+    font-family:'Rajdhani', sans-serif;
+    font-size:0.85rem;
+    font-weight:500;
+    letter-spacing:0.1em;
+    color:var(--gray2);
+    text-transform:uppercase;
+  }
+
+  footer a { color:var(--accent); text-decoration:none; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height:1px; background:linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity:0.2; margin:0;
+  }
+
+  /* ── HELP BUTTON ── */
+  .btn-help {
+    display:inline-flex; align-items:center; gap:0.6rem;
+    background:transparent;
+    color:var(--gray);
+    font-family:'Rajdhani', sans-serif;
+    font-size:1rem;
+    font-weight:700;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    padding:1rem 2rem;
+    border-radius:4px;
+    border:1px solid var(--border);
+    cursor:pointer;
+    transition:all 0.2s;
+    animation:fadeUp 0.6s ease 0.25s both;
+  }
+  .btn-help:hover {
+    border-color:var(--gray);
+    color:var(--white);
+  }
+
+  /* ── JUNGLE ANIMATION OVERLAY ── */
+  #jungle-overlay {
+    position:fixed; inset:0; z-index:9000;
+    pointer-events:none;
+    overflow:hidden;
+    display:none;
+  }
+
+  #jungle-overlay.active { display:block; }
+
+  /* Dark semi-transparent BG flash */
+  #jungle-overlay::before {
+    content:'';
+    position:absolute; inset:0;
+    background:rgba(0,20,0,0.55);
+    animation:jungleFade 3.5s ease forwards;
+  }
+
+  @keyframes jungleFade {
+    0%   { opacity:0; }
+    15%  { opacity:1; }
+    80%  { opacity:1; }
+    100% { opacity:0; }
+  }
+
+  /* The character swinging across */
+  #jungle-char {
+    position:absolute;
+    top: 10%;
+    width: 380px;
+    height: auto;
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.8));
+    animation: swingAcross 3s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+    transform-origin: top center;
+  }
+
+  @keyframes swingAcross {
+    0%   { left:-220px; top:15%; transform:rotate(-15deg) scaleX(-1); }
+    20%  { top:35%; transform:rotate(5deg) scaleX(-1); }
+    40%  { top:20%; transform:rotate(-8deg) scaleX(-1); }
+    60%  { top:30%; transform:rotate(6deg) scaleX(-1); }
+    80%  { top:18%; transform:rotate(-5deg) scaleX(-1); }
+    100% { left:calc(100% + 220px); top:25%; transform:rotate(10deg) scaleX(-1); }
+  }
+
+  /* Vines (ropes) hint — removed */
+
+  /* NON DÉSO text */
+  #jungle-text {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%) scale(0.5);
+    font-family:'Bebas Neue', sans-serif;
+    font-size:clamp(3rem,10vw,8rem);
+    color:#fff;
+    text-shadow:0 0 40px rgba(0,200,0,0.8), 0 4px 24px rgba(0,0,0,0.9);
+    letter-spacing:0.1em;
+    white-space:nowrap;
+    opacity:0;
+    animation:textPop 3.5s ease forwards;
+    pointer-events:none;
+  }
+
+  @keyframes textPop {
+    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.5); }
+    30%  { opacity:0; transform:translate(-50%,-50%) scale(0.5); }
+    45%  { opacity:1; transform:translate(-50%,-50%) scale(1.15); }
+    55%  { transform:translate(-50%,-50%) scale(0.95); }
+    70%  { opacity:1; transform:translate(-50%,-50%) scale(1); }
+    90%  { opacity:1; }
+    100% { opacity:0; transform:translate(-50%,-50%) scale(1); }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+</style>
 </head>
 <body>
-  <div id="menu">
-    <h1>Cle4ner Gang</h1>
-    <button id="startBtn">Démarrer le jeu</button>
-    <p>Créé par Simlesauvage</p>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <img src="https://raw.githubusercontent.com/SimWbug/CLeanerSTEROID/refs/heads/main/logo.png.png" alt="CleanGang Logo">
+    <span>Clean<em>Gang</em></span>
+  </div>
+  <ul>
+    <li><a href="#hero">Accueil</a></li>
+    <li><a href="#about">À propos</a></li>
+    <li><a href="#wiki">Wiki</a></li>
+    <li><a href="#download">Télécharger</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-badge">⚡ Minecraft Server Pack</div>
+
+  <div class="logo-display">
+    <img src="https://raw.githubusercontent.com/SimWbug/CLeanerSTEROID/refs/heads/main/logo.png.png" alt="CleanGang Logo">
   </div>
 
-  <div id="score">Score: 0</div>
-  <div id="timer">Temps: 5</div>
-  <div id="text">Cle4ner Gang</div>
-  <div id="decoy">🛸</div>
-  <div id="crt"></div>
-  <div id="finalScoreboard">
-    <h3>Score final</h3>
-    <p id="scoreList"></p>
-    <button id="restartBtn">Retour au menu</button>
+  <h1>CLEAN<span class="accent">GANG</span></h1>
+  <p class="hero-tagline">Server Pack — Entre potes, toujours</p>
+
+  <p class="hero-desc">
+    Le serveur où les vrais <strong style="color:var(--accent)">Cl3aner</strong> se retrouvent. CleanGang Server Pack c'est une expérience Minecraft pour jouer entre amis. Tous les mods sont soigneusement sélectionnés pour des sessions jusqu'au bout de la nuit. Construis, explore, farme, rigole — et surtout si un jour vous vous retrouvez face à un creeper… méfiez-vous, c'est un conseil d'ami que je vous donne. 💥
+  </p>
+
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;align-items:center;">
+  <a href="https://drive.google.com/file/d/1eTKaBzkJUxVRoJRV0v-iyiHCz0qzsuAr/view?usp=drive_link"
+     class="btn-download" target="_blank" rel="noopener">
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+    </svg>
+    Télécharger le Pack
+  </a>
+
+  <button class="btn-help" onclick="launchJungle()">
+    ❓ Besoin d'aide ?
+  </button>
   </div>
-  <audio id="boom" src="https://cdn.pixabay.com/download/audio/2021/08/08/audio_7c5dc92b50.mp3?filename=explosion-6055.mp3"></audio>
 
-  <script>
-    const text = document.getElementById('text');
-    const decoy = document.getElementById('decoy');
-    const scoreDisplay = document.getElementById('score');
-    const timerDisplay = document.getElementById('timer');
-    const menu = document.getElementById('menu');
-    const startBtn = document.getElementById('startBtn');
-    const boom = document.getElementById('boom');
-    const scoreboard = document.getElementById('finalScoreboard');
-    const scoreList = document.getElementById('scoreList');
-    const restartBtn = document.getElementById('restartBtn');
+  <div class="hero-stats">
+    <div class="stat">
+      <span class="stat-num">195</span>
+      <span class="stat-label">Mods</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-num">1.20</span>
+      <span class="stat-label">Minecraft</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-num">FORGE</span>
+      <span class="stat-label">Loader</span>
+    </div>
+  </div>
+</section>
 
-    let x = 100, y = 100;
-    let dx = 2, dy = 2;
-    let visible = true;
-    let score = 0;
-    let timer = 5;
-    let countdown;
-    let gameRunning = false;
-    let decoyVisible = false;
+<div class="divider"></div>
 
-    function move() {
-      if (visible && gameRunning) {
-        const rect = text.getBoundingClientRect();
-        const winWidth = window.innerWidth;
-        const winHeight = window.innerHeight;
+<!-- À PROPOS -->
+<section id="about">
+<div class="section-wrap">
+  <div class="section-tag">Le pack en bref</div>
+  <h2>FAIT POUR <span class="accent">JOUER ENSEMBLE</span></h2>
+  <p class="section-intro">
+    CleanGang Server Pack réunit le meilleur de Minecraft moddé pour des sessions épiques entre potes. Chaque mod a été choisi pour enrichir l'expérience collective — sans prise de tête, juste du fun.
+  </p>
 
-        if (x + rect.width >= winWidth || x <= 0) dx *= -1;
-        if (y + rect.height >= winHeight || y <= 0) dy *= -1;
+  <div class="about-grid">
+    <div class="about-card" style="--cat-color:#e8c840">
+      <span class="about-icon">🏗️</span>
+      <h3>Construction & Déco</h3>
+      <p>Macaw's series, Handcrafted, MOA Decor et des dizaines d'autres pour construire des bases incroyables sur le serveur.</p>
+    </div>
+    <div class="about-card" style="--cat-color:#40b0e8">
+      <span class="about-icon">🌾</span>
+      <h3>Farming & Cuisine</h3>
+      <p>Farmer's Delight, Pam's HarvestCraft 2, Serene Seasons — créez votre ferme collective et nourrissez toute la gang.</p>
+    </div>
+    <div class="about-card" style="--cat-color:#40e880">
+      <span class="about-icon">🦦</span>
+      <h3>Faune & Nature</h3>
+      <p>Biomes O'Plenty, Critters and Companions, Butterflies — un monde vivant à explorer et partager entre potes.</p>
+    </div>
+    <div class="about-card" style="--cat-color:#e84040">
+      <span class="about-icon">🗺️</span>
+      <h3>Exploration</h3>
+      <p>YUNG's dungeons, Towns & Towers, JourneyMap — partez en expédition, partagez vos découvertes, pillonnez ensemble.</p>
+    </div>
+    <div class="about-card" style="--cat-color:#b040e8">
+      <span class="about-icon">🎨</span>
+      <h3>Visuels épiques</h3>
+      <p>Embeddium + Oculus + Complementary Shaders pour un rendu qui en met plein les yeux lors des streams.</p>
+    </div>
+    <div class="about-card" style="--cat-color:#e89040">
+      <span class="about-icon">⚙️</span>
+      <h3>Confort maximal</h3>
+      <p>JEI, Jade, Sophisticated Backpacks, Waystones — tout pour que personne ne galère et que les sessions restent fluides.</p>
+    </div>
+  </div>
+</div>
+</section>
 
-        x += dx;
-        y += dy;
+<div class="divider"></div>
 
-        text.style.left = x + 'px';
-        text.style.top = y + 'px';
-      }
+<!-- WIKI -->
+<section id="wiki">
+<div class="wiki-inner">
+  <div class="section-tag">Wiki des mods</div>
+  <h2>TOUS LES <span class="accent">MODS</span></h2>
+  <p class="section-intro">
+    Chaque mod du pack détaillé — description, catégorie et lien direct.
+  </p>
 
-      requestAnimationFrame(move);
-    }
+  <div class="search-row">
+    <input type="text" class="search-box" id="searchInput" placeholder="🔍  Rechercher un mod…" oninput="filterMods()">
+  </div>
 
-    function startTimer() {
-      timer = 5;
-      timerDisplay.textContent = "Temps: " + timer;
-      clearInterval(countdown);
-      countdown = setInterval(() => {
-        timer--;
-        timerDisplay.textContent = "Temps: " + timer;
-        if (timer <= 0) {
-          endGame();
-        }
-      }, 1000);
-    }
+  <div class="wiki-filters" id="filterBtns">
+    <button class="filter-btn active" onclick="setFilter('all',this)">Tous <span class="count-badge" id="countAll">195</span></button>
+    <button class="filter-btn" onclick="setFilter('decoration',this)">🏗️ Déco</button>
+    <button class="filter-btn" onclick="setFilter('agriculture',this)">🌾 Farming</button>
+    <button class="filter-btn" onclick="setFilter('faune',this)">🦦 Faune</button>
+    <button class="filter-btn" onclick="setFilter('exploration',this)">🗺️ Exploration</button>
+    <button class="filter-btn" onclick="setFilter('visual',this)">🎨 Visuels</button>
+    <button class="filter-btn" onclick="setFilter('qdv',this)">⚙️ QoL</button>
+    <button class="filter-btn" onclick="setFilter('api',this)">📦 API/Lib</button>
+  </div>
 
-    function endGame() {
-      clearInterval(countdown);
-      gameRunning = false;
-      text.style.display = "none";
-      decoy.style.display = "none";
+  <div class="mods-grid" id="modsGrid"></div>
+  <p class="no-results" id="noResults">Aucun mod trouvé.</p>
+</div>
+</section>
 
-      let player = prompt("Entrez votre nom pour le tableau des scores :") || "Anonyme";
-      let scores = JSON.parse(localStorage.getItem("scores")) || [];
-      scores.push(`${player}: ${score}`);
-      localStorage.setItem("scores", JSON.stringify(scores));
+<!-- DOWNLOAD BANNER -->
+<div class="banner" id="download">
+  <h2>PRÊT À REJOINDRE LA GANG ?</h2>
+  <p>Télécharge le pack, installe-le avec CurseForge ou Prism Launcher, et rejoint tes potes sur le serveur. La session t'attend.</p>
+  <a href="https://drive.google.com/file/d/1eTKaBzkJUxVRoJRV0v-iyiHCz0qzsuAr/view?usp=drive_link"
+     class="btn-dl-dark" target="_blank" rel="noopener">
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+    </svg>
+    Télécharger CleanGang Pack
+  </a>
+</div>
 
-      scoreboard.style.display = "block";
-      scoreList.innerHTML = "Scores précédents :<br>" + scores.join("<br>");
-    }
+<!-- FOOTER -->
+<footer>
+  <p>⚡ <strong>CleanGang Server Pack</strong> &nbsp;·&nbsp;
+  <a href="https://drive.google.com/file/d/1eTKaBzkJUxVRoJRV0v-iyiHCz0qzsuAr/view?usp=drive_link" target="_blank">Télécharger</a>
+  &nbsp;·&nbsp; Made with 💛 for the gang
+  </p>
+</footer>
 
-    text.addEventListener('click', () => {
-      text.classList.add('explode');
-      visible = false;
-      boom.currentTime = 0;
-      boom.play();
-      score++;
-      scoreDisplay.textContent = "Score: " + score;
-      startTimer();
+<script>
+const mods = [
+  { name: "Macaw's Windows", desc: "Une multitude de types de fenêtres décoratives en bois, pierre, métal et plus.", emoji: "🪟", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/macaws-windows" },
+  { name: "Macaw's Doors", desc: "Des dizaines de nouvelles portes dans tous les matériaux vanilla et plus.", emoji: "🚪", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/macaws-doors" },
+  { name: "Macaw's Stairs", desc: "Escaliers décoratifs dans de nombreux matériaux et styles.", emoji: "🪜", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/macaws-stairs" },
+  { name: "Macaw's Furniture", desc: "Meubles décoratifs : chaises, tables, étagères, armoires…", emoji: "🛋️", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/macaws-furniture" },
+  { name: "Macaw's Roofs", desc: "Blocs de toit dans tous les bois et pierres pour des constructions réalistes.", emoji: "🏠", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/macaws-roofs" },
+  { name: "Macaw's Fences and Walls", desc: "Clôtures et murs décoratifs dans de nombreux matériaux.", emoji: "🧱", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/macaws-fences-and-walls" },
+  { name: "Macaw's Trapdoors", desc: "Trappes décoratives dans tous les matériaux vanilla.", emoji: "🔲", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/macaws-trapdoors" },
+  { name: "Macaw's Lights and Lamps", desc: "Sources lumineuses décoratives variées pour illuminer vos intérieurs.", emoji: "💡", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/macaws-lights-and-lamps" },
+  { name: "Macaw's Bridges", desc: "Ponts décoratifs en bois, pierre et métal.", emoji: "🌉", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/macaws-bridges" },
+  { name: "Macaw's Paintings", desc: "De nouvelles peintures artistiques pour décorer vos murs.", emoji: "🖼️", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/macaws-paintings" },
+  { name: "Macaw's Paths and Pavings", desc: "Chemins et pavés décoratifs pour aménager jardins et routes.", emoji: "🛤️", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/macaws-paths-and-pavings" },
+  { name: "Handcrafted", desc: "Meubles cozy faits à la main : canapés, chaises, tables basses.", emoji: "🪑", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/handcrafted" },
+  { name: "Another Furniture", desc: "Encore plus de meubles décoratifs pour votre intérieur.", emoji: "🛏️", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/another-furniture" },
+  { name: "Fantasy's Furniture", desc: "Meubles au style fantastique et médiéval pour des intérieurs épiques.", emoji: "✨", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/fantasys-furniture" },
+  { name: "MrCrayfish's Furniture Mod", desc: "Le classique des mods de meubles : cuisine, salon, bureau.", emoji: "🪴", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/mrcrayfish-furniture-mod" },
+  { name: "Adorn", desc: "Meubles élégants et blocs de décoration pour tous les styles.", emoji: "🏺", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/adorn-for-forge" },
+  { name: "Beautify!", desc: "Objets décoratifs variés pour enrichir vos constructions.", emoji: "🌺", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/beautify-decorate" },
+  { name: "Supplementaries", desc: "Petits ajouts décoratifs et fonctionnels : bocaux, poulies, panneaux.", emoji: "🏮", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/supplementaries" },
+  { name: "Amendments", desc: "Nouvelles variantes décoratives pour les blocs vanilla.", emoji: "🧩", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/amendments" },
+  { name: "FramedBlocks", desc: "Utilisez n'importe quel bloc comme texture sur des formes variées.", emoji: "🔧", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/framedblocks" },
+  { name: "Chisels & Bits", desc: "Sculptez vos blocs voxel par voxel pour des détails uniques.", emoji: "⛏️", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/chisels-bits" },
+  { name: "Chipped", desc: "Des centaines de variantes décoratives pour les blocs vanilla.", emoji: "🪵", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/chipped" },
+  { name: "Rechiseled", desc: "Convertissez les blocs en variantes décoratives supplémentaires.", emoji: "🔨", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/rechiseled" },
+  { name: "Fairy Lights", desc: "Guirlandes lumineuses colorées pour décorer vos espaces.", emoji: "✨", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/fairy-lights" },
+  { name: "Night Lights", desc: "Sources lumineuses décoratives nocturnes pour ambiance cozy.", emoji: "🕯️", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/nightlights" },
+  { name: "Additional Lanterns", desc: "Lanternes décoratives supplémentaires dans divers styles.", emoji: "🏮", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/additional-lanterns" },
+  { name: "Twigs", desc: "Nouveaux blocs nature : branchettes, cailloux, pétales.", emoji: "🌿", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/twigs" },
+  { name: "Cluttered", desc: "Petits blocs de décoration pour des intérieurs vivants.", emoji: "📚", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/cluttered" },
+  { name: "Signpost", desc: "Poteaux indicateurs orientables pour guider les voyageurs.", emoji: "📍", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/signpost" },
+  { name: "Comforts", desc: "Sacs de couchage et hamacs sans réinitialisation du spawn.", emoji: "🛌", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/comforts" },
+  { name: "Zetter — Painting Mod", desc: "Peignez vos propres tableaux pixel par pixel.", emoji: "🎨", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/zetter" },
+  { name: "MOA DECOR: ART", desc: "Œuvres d'art décoratifs pour embellir vos murs.", emoji: "🖼️", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/moa-decor-art" },
+  { name: "MOA DECOR: BATH", desc: "Accessoires de salle de bain décoratifs.", emoji: "🛁", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/moa-decor-bath" },
+  { name: "MOA DECOR: COOKERY", desc: "Ustensiles et décoration pour la cuisine.", emoji: "🍳", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/moa-decor-cookery" },
+  { name: "MOA DECOR: ELECTRONICS", desc: "Appareils électroniques décoratifs modernes.", emoji: "📺", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/moa-decor-electronics" },
+  { name: "MOA DECOR: GARDEN", desc: "Décorations de jardin : pots, outils, meubles extérieurs.", emoji: "🌻", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/moa-decor-garden" },
+  { name: "MOA DECOR: TOYS", desc: "Jouets et décoration enfantine pour votre intérieur.", emoji: "🧸", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/moa-decor-toys" },
+  { name: "Cozy Home", desc: "Blocs et meubles cozy dans un style pierre et eau.", emoji: "🏚️", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/cozy-home" },
+  { name: "Exposure", desc: "Photographiez votre monde avec un appareil photo.", emoji: "📷", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/exposure" },
+  { name: "Immersive Melodies", desc: "Jouez de la musique avec des instruments décoratifs.", emoji: "🎵", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/immersive-melodies" },
+  { name: "Variant Chiseled Bookshelves", desc: "Bibliothèques ciselées dans tous les types de bois.", emoji: "📖", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/variant-chiseled-bookshelves" },
+  { name: "AstikorCarts Redux", desc: "Chariots tirés par des animaux pour transporter marchandises.", emoji: "🛒", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/astikor-carts-redux" },
+  { name: "Jewelcraft", desc: "Créez des bijoux et ornements décoratifs précieux.", emoji: "💍", cat: ["decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/jewelcraft" },
+  { name: "Farmer's Delight", desc: "Extension cuisine et agriculture : nouveaux plats, outils, ingrédients.", emoji: "🍲", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/farmers-delight" },
+  { name: "Pam's HarvestCraft 2 - Crops", desc: "Des centaines de nouvelles cultures à planter et récolter.", emoji: "🌽", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/pams-harvestcraft-2-crops" },
+  { name: "Pam's HarvestCraft 2 - Food Core", desc: "La base de HarvestCraft 2 avec les recettes essentielles.", emoji: "🍎", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/pams-harvestcraft-2-food-core" },
+  { name: "Pam's HarvestCraft 2 - Food Extended", desc: "Recettes culinaires supplémentaires pour HarvestCraft.", emoji: "🥗", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/pams-harvestcraft-2-food-extended" },
+  { name: "Pam's HarvestCraft 2 - Trees", desc: "Arbres fruitiers et noix supplémentaires à cultiver.", emoji: "🍋", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/pams-harvestcraft-2-trees" },
+  { name: "Cooking for Blockheads", desc: "Cuisine fonctionnelle et livre de recettes intégré.", emoji: "👨‍🍳", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/cooking-for-blockheads" },
+  { name: "Aquaculture 2", desc: "Pêche améliorée avec +30 espèces de poissons.", emoji: "🎣", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/aquaculture" },
+  { name: "Aquaculture Delight", desc: "Compat Aquaculture + Farmer's Delight : recettes de poisson.", emoji: "🐟", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/aquaculture-delight" },
+  { name: "Serene Seasons", desc: "Quatre saisons influençant météo, cultures et faune.", emoji: "🍂", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/serene-seasons" },
+  { name: "Botany Pots", desc: "Pots pour cultiver n'importe quelle plante en intérieur.", emoji: "🪴", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/botany-pots" },
+  { name: "Botany Trees", desc: "Extension de Botany Pots pour cultiver des arbres.", emoji: "🌳", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/botany-trees" },
+  { name: "Botany Pots Tiers", desc: "Pots de qualité améliorée pour accélérer la croissance.", emoji: "⬆️", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/botany-pots-tiers" },
+  { name: "Productive Bees", desc: "Abeilles spécialisées pour produire ressources et matériaux.", emoji: "🐝", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/productivebees" },
+  { name: "Neapolitan", desc: "Nouvelles saveurs de glaces et desserts.", emoji: "🍦", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/neapolitan" },
+  { name: "[Let's Do] Farm & Charm", desc: "Vie agricole enrichie : animaux, machines, déco de ferme.", emoji: "🐓", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/lets-do-farm-charm" },
+  { name: "[Let's Do] Vinery", desc: "Vignes, raisins, vins et tonneaux pour votre cave.", emoji: "🍷", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/lets-do-vinery" },
+  { name: "[Let's Do] HerbalBrews", desc: "Herbes médicinales, tisanes et potions naturelles.", emoji: "🌱", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/lets-do-herbal-brews" },
+  { name: "[Let's Do] Bakery - Farm&Charm Compat", desc: "Boulangerie intégrée avec compat Farm & Charm.", emoji: "🥐", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/lets-do-bakery-farm-charm-compat" },
+  { name: "[Let's Do] Candlelight - Farm&Charm Compat", desc: "Bougies et ambiance lumineuse compat Farm & Charm.", emoji: "🕯️", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/lets-do-candlelight-farm-charm-compat" },
+  { name: "Foods & Plants", desc: "Plus de plantes comestibles et recettes culinaires.", emoji: "🥦", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/foods-plants-cooking-with-mindthemoods" },
+  { name: "Floral Tonics & Tinctures", desc: "Potions à base de fleurs aux effets variés.", emoji: "🌸", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/floral-tonics-tinctures" },
+  { name: "Spice of Life: Carrot Edition", desc: "Bonus de stats pour encourager la diversité alimentaire.", emoji: "🥕", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/spice-of-life-carrot-edition" },
+  { name: "Smarter Farmers", desc: "Les villageois fermiers replantent automatiquement.", emoji: "👨‍🌾", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/smarter-farmers-farmers-replant" },
+  { name: "Harvest with Ease", desc: "Récoltez et replantez en un seul clic.", emoji: "🌿", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/harvest-with-ease" },
+  { name: "Straw Golem Updated", desc: "Golem de paille pour automatiser la récolte.", emoji: "🤖", cat: ["agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/straw-golem-rebaled-ported" },
+  { name: "Critters and Companions", desc: "Loutres, lapins de mer, ratons laveurs et plus.", emoji: "🦦", cat: ["faune"], url: "https://www.curseforge.com/minecraft/mc-mods/critters-and-companions" },
+  { name: "Creatures and Beasts", desc: "Nouvelles créatures sauvages et légendaires.", emoji: "🐉", cat: ["faune"], url: "https://www.curseforge.com/minecraft/mc-mods/creatures-and-beasts-the-unofficial-port" },
+  { name: "Duckling", desc: "Adorables canetons qui suivent leur mère.", emoji: "🦆", cat: ["faune"], url: "https://www.curseforge.com/minecraft/mc-mods/duckling" },
+  { name: "Hamsters Plus Lite", desc: "Hamsters domestiques à adopter et nourrir.", emoji: "🐹", cat: ["faune"], url: "https://www.curseforge.com/minecraft/mc-mods/hamsters" },
+  { name: "Bok's Banging Butterflies", desc: "Papillons colorés dans les biomes fleuris.", emoji: "🦋", cat: ["faune"], url: "https://www.curseforge.com/minecraft/mc-mods/boks-butterflies" },
+  { name: "Ribbits", desc: "Grenouilles décoratives avec comportements uniques.", emoji: "🐸", cat: ["faune"], url: "https://www.curseforge.com/minecraft/mc-mods/ribbits" },
+  { name: "Useful Ribbits", desc: "Les grenouilles deviennent apprivoisables avec des avantages.", emoji: "🐸", cat: ["faune"], url: "https://www.curseforge.com/minecraft/mc-mods/useful-ribbits" },
+  { name: "Ghosts", desc: "Spectres qui hantent les bâtiments abandonnés.", emoji: "👻", cat: ["faune"], url: "https://www.curseforge.com/minecraft/mc-mods/ghost" },
+  { name: "Goblin Traders", desc: "Marchands gobelins cachés dans les grottes.", emoji: "👺", cat: ["faune"], url: "https://www.curseforge.com/minecraft/mc-mods/goblin-traders" },
+  { name: "Ecologics", desc: "Améliore les biomes avec plantes et créatures supplémentaires.", emoji: "🌊", cat: ["faune"], url: "https://www.curseforge.com/minecraft/mc-mods/ecologics" },
+  { name: "Biomes O' Plenty", desc: "Plus de 50 nouveaux biomes uniques.", emoji: "🌋", cat: ["faune","exploration"], url: "https://www.curseforge.com/minecraft/mc-mods/biomes-o-plenty" },
+  { name: "Herios' Floral Expansion", desc: "Des centaines de nouvelles fleurs et plantes.", emoji: "🌼", cat: ["faune","decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/herios-floral-expansion" },
+  { name: "Flower Patch", desc: "Patches de fleurs pour décorer vos jardins.", emoji: "💐", cat: ["faune","decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/flower-patch" },
+  { name: "LDShadowLady's Flower Breeding", desc: "Croisez des fleurs pour obtenir de nouvelles couleurs rares.", emoji: "🌷", cat: ["faune","agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/ldshadowladys-flower-breeding-replanted" },
+  { name: "Immersive Weathering", desc: "Vieillissement naturel : rouille, mousse, patine.", emoji: "🌧️", cat: ["faune","visual"], url: "https://www.curseforge.com/minecraft/mc-mods/immersive-weathering-forge" },
+  { name: "JourneyMap", desc: "Minimap et carte du monde en temps réel avec waypoints.", emoji: "🗺️", cat: ["exploration","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/journeymap" },
+  { name: "Waystones", desc: "Bornes de téléportation entre points d'intérêt.", emoji: "🪨", cat: ["exploration","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/waystones" },
+  { name: "YUNG's Better Dungeons", desc: "Donjons redessinés plus variés et immersifs.", emoji: "🏰", cat: ["exploration"], url: "https://www.curseforge.com/minecraft/mc-mods/yungs-better-dungeons" },
+  { name: "YUNG's Better Mineshafts", desc: "Mines abandonnées repensées, plus réalistes.", emoji: "⛏️", cat: ["exploration"], url: "https://www.curseforge.com/minecraft/mc-mods/yungs-better-mineshafts-forge" },
+  { name: "YUNG's Better Strongholds", desc: "Forteresses de l'End entièrement redessinées.", emoji: "🏯", cat: ["exploration"], url: "https://www.curseforge.com/minecraft/mc-mods/yungs-better-strongholds" },
+  { name: "Towns and Towers", desc: "Nouveaux villages, avant-postes et tours de guet.", emoji: "🏘️", cat: ["exploration"], url: "https://www.curseforge.com/minecraft/mc-mods/towns-and-towers" },
+  { name: "Lootr", desc: "Chaque joueur a son propre butin dans les coffres.", emoji: "🎁", cat: ["exploration","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/lootr" },
+  { name: "Nature's Compass", desc: "Trouvez n'importe quel biome instantanément.", emoji: "🧭", cat: ["exploration","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/natures-compass" },
+  { name: "Explorer's Compass", desc: "Localisez n'importe quelle structure générée.", emoji: "🔭", cat: ["exploration","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/explorers-compass" },
+  { name: "Just Enough Archaeology", desc: "Intégration archéologie vanilla avec JEI.", emoji: "🏺", cat: ["exploration","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/just-enough-archaeology" },
+  { name: "Embeddium", desc: "Moteur de rendu optimisé pour de meilleures performances.", emoji: "⚡", cat: ["visual"], url: "https://www.curseforge.com/minecraft/mc-mods/embeddium" },
+  { name: "Oculus", desc: "Support des shaders GLSL pour des graphismes spectaculaires.", emoji: "🌟", cat: ["visual"], url: "https://www.curseforge.com/minecraft/mc-mods/oculus" },
+  { name: "Complementary Shaders - Unbound", desc: "Shaders AAA avec éclairage volumétrique et ombres.", emoji: "☀️", cat: ["visual"], url: "https://www.curseforge.com/minecraft/shaders/complementary-unbound" },
+  { name: "Sodium/Embeddium Dynamic Lights", desc: "Sources lumineuses en main éclairent dynamiquement.", emoji: "🔦", cat: ["visual"], url: "https://www.curseforge.com/minecraft/mc-mods/dynamiclights-reforged" },
+  { name: "Entity Culling", desc: "Ne rend pas les entités hors de vue pour moins de lag.", emoji: "🎯", cat: ["visual"], url: "https://www.curseforge.com/minecraft/mc-mods/entityculling" },
+  { name: "[ETF] Entity Texture Features", desc: "Textures aléatoires et personnalisées pour les entités.", emoji: "🎭", cat: ["visual"], url: "https://www.curseforge.com/minecraft/mc-mods/entity-texture-features-fabric" },
+  { name: "[EMF] Entity Model Features", desc: "Modèles 3D personnalisés pour les entités.", emoji: "🗿", cat: ["visual"], url: "https://www.curseforge.com/minecraft/mc-mods/entity-model-features" },
+  { name: "Fresh Animations", desc: "Animations fluides et expressives pour les mobs vanilla.", emoji: "🎬", cat: ["visual"], url: "https://www.curseforge.com/minecraft/texture-packs/fresh-animations" },
+  { name: "Better Foliage Renewed", desc: "Feuillages plus denses et réalistes.", emoji: "🌲", cat: ["visual"], url: "https://www.curseforge.com/minecraft/mc-mods/better-foliage-renewed" },
+  { name: "Falling Leaves", desc: "Feuilles qui tombent doucement selon les saisons.", emoji: "🍃", cat: ["visual"], url: "https://www.curseforge.com/minecraft/mc-mods/falling-leaves-forge" },
+  { name: "AmbientSounds 6", desc: "Sons d'ambiance immersifs selon biome, météo, heure.", emoji: "🎶", cat: ["visual"], url: "https://www.curseforge.com/minecraft/mc-mods/ambientsounds" },
+  { name: "Fusion (Connected Textures)", desc: "Textures connectées pour un rendu lisse.", emoji: "🔗", cat: ["visual"], url: "https://www.curseforge.com/minecraft/mc-mods/fusion-connected-textures" },
+  { name: "Overgrown Flowery GUI", desc: "Interface couverte de fleurs et verdure.", emoji: "🌻", cat: ["visual"], url: "https://www.curseforge.com/minecraft/texture-packs/overgrown-flowery-gui" },
+  { name: "Simple Grass Flowers", desc: "Petites fleurs dans l'herbe pour plus de détail.", emoji: "🌼", cat: ["visual"], url: "https://www.curseforge.com/minecraft/texture-packs/simple-grass-flowers" },
+  { name: "Fast Leaf Decay", desc: "Les feuilles sans bûche se décomposent immédiatement.", emoji: "🍂", cat: ["visual","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/fast-leaf-decay" },
+  { name: "Just Enough Items (JEI)", desc: "Consultez toutes les recettes et usages de chaque item.", emoji: "📋", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/jei" },
+  { name: "Jade", desc: "HUD d'info sur le bloc ou l'entité que vous regardez.", emoji: "🔍", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/jade" },
+  { name: "Sophisticated Backpacks", desc: "Sacs à dos avancés avec slots d'upgrade et filtres.", emoji: "🎒", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/sophisticated-backpacks" },
+  { name: "Tool Belt", desc: "Ceinture à outils pour accès rapide à plusieurs équipements.", emoji: "🔧", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/tool-belt" },
+  { name: "Carry On", desc: "Prenez des mobs et blocs fonctionnels dans vos bras.", emoji: "📦", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/carry-on" },
+  { name: "Mouse Tweaks", desc: "Raccourcis souris avancés pour gérer l'inventaire.", emoji: "🖱️", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/mouse-tweaks" },
+  { name: "Inventory Profiles Next", desc: "Trie et organise votre inventaire automatiquement.", emoji: "📦", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/inventory-profiles-next" },
+  { name: "Inventory Sorter", desc: "Tri rapide de l'inventaire d'un double-clic.", emoji: "🗄️", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/inventory-sorter" },
+  { name: "Crafting Tweaks", desc: "Boutons pratiques dans les tables de craft.", emoji: "🔄", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/crafting-tweaks" },
+  { name: "Iron Chests", desc: "Coffres en fer, or, diamant de tailles croissantes.", emoji: "🗃️", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/iron-chests" },
+  { name: "Ender Storage 1.8.+", desc: "Coffres de l'Ender partageables avec code couleur.", emoji: "🟣", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/ender-storage-1-8" },
+  { name: "AppleSkin", desc: "Affiche la satiété et valeur nutritive des aliments.", emoji: "🍏", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/appleskin" },
+  { name: "Tree Harvester", desc: "Abattez un arbre entier d'un seul coup de hache.", emoji: "🪓", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/tree-harvester" },
+  { name: "Server-side Vein Miner", desc: "Minez un filon entier d'un seul coup.", emoji: "⛏️", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/server-side-vein-miner" },
+  { name: "Corail Woodcutter", desc: "Scie à bois pour découper en planches et moulures.", emoji: "🪚", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/corail-woodcutter" },
+  { name: "TrashSlot", desc: "Slot poubelle pour supprimer les items rapidement.", emoji: "🗑️", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/trashslot" },
+  { name: "Just Zoom", desc: "Zoom avec la touche C pour observer de loin.", emoji: "🔭", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/just-zoom" },
+  { name: "Controlling", desc: "Cherchez et modifiez facilement vos keybinds.", emoji: "⌨️", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/controlling" },
+  { name: "Enchantment Descriptions", desc: "Description détaillée de chaque enchantement.", emoji: "📜", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/enchantment-descriptions" },
+  { name: "Patchouli", desc: "Livres de guide in-game pour chaque mod.", emoji: "📚", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/patchouli" },
+  { name: "Artifacts", desc: "Artéfacts rares aux pouvoirs uniques dans les donjons.", emoji: "🏆", cat: ["qdv","exploration"], url: "https://www.curseforge.com/minecraft/mc-mods/artifacts" },
+  { name: "Cosmetic Armor Reworked", desc: "Portez une armure stats + une armure cosmétique.", emoji: "👗", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/cosmetic-armor-reworked" },
+  { name: "Backpacked", desc: "Sac à dos léger pour un peu plus de stockage.", emoji: "🎒", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/backpacked" },
+  { name: "Corpse", desc: "Votre corps reste au sol avec votre inventaire.", emoji: "💀", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/corpse" },
+  { name: "Charm of Undying", desc: "Amulette d'immortalité pour éviter la mort une fois.", emoji: "💎", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/charm-of-undying" },
+  { name: "Clumps", desc: "Regroupe les orbes d'XP pour moins de lag.", emoji: "✨", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/clumps" },
+  { name: "Friendly Fire", desc: "Désactive les dégâts entre alliés et animaux.", emoji: "🛡️", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/friendly-fire" },
+  { name: "Jumpy Boats", desc: "Les bateaux peuvent sauter des obstacles.", emoji: "🚤", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/jumpy-boats" },
+  { name: "Essential Mod", desc: "Multijoueur sans serveur, cosmétiques et partage.", emoji: "🌐", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/essential-mod" },
+  { name: "Ding", desc: "Son quand Minecraft finit de charger.", emoji: "🔔", cat: ["qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/ding" },
+  { name: "Architectury API", desc: "Couche d'abstraction multiplateforme Forge/Fabric.", emoji: "⚙️", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/architectury-api" },
+  { name: "GeckoLib", desc: "Bibliothèque d'animation 3D pour entités et blocs.", emoji: "🦎", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/geckolib" },
+  { name: "Moonlight Lib", desc: "Bibliothèque partagée pour les mods de MehVahdJukaar.", emoji: "🌙", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/selene" },
+  { name: "Curios API", desc: "Slots d'équipement supplémentaires (bijoux, amulettes).", emoji: "💍", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/curios" },
+  { name: "TerraBlender", desc: "API pour l'injection de biomes personnalisés.", emoji: "🌍", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/terrablender" },
+  { name: "Fastload", desc: "Accélère significativement le chargement des mondes.", emoji: "⚡", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/fastload" },
+  { name: "FerriteCore", desc: "Optimise l'utilisation mémoire de Minecraft.", emoji: "💾", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/ferritecore" },
+  { name: "Canary", desc: "Optimisations serveur pour un meilleur TPS.", emoji: "🐦", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/canary" },
+  { name: "Starlight (Forge)", desc: "Réécriture du moteur d'éclairage pour de meilleures perfs.", emoji: "⭐", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/starlight-forge" },
+  { name: "Framework", desc: "Bibliothèque de base pour les mods de MrCrayfish.", emoji: "🔧", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/framework" },
+  { name: "[Let's Do] API", desc: "Bibliothèque requise pour les mods Let's Do.", emoji: "📦", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/do-api" },
+  { name: "Cristel Lib", desc: "Bibliothèque pour les mods de Cristelknight.", emoji: "📦", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/cristel-lib" },
+  { name: "Blueprint", desc: "Bibliothèque pour les mods de TeamAbnormals.", emoji: "📐", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/blueprint" },
+  { name: "CreativeCore", desc: "Bibliothèque principale pour les mods de CreativeMD.", emoji: "🔬", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/creativecore" },
+  { name: "Balm", desc: "API de compatibilité multiplateforme pour BlayTheNinth.", emoji: "⚖️", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/balm" },
+  { name: "Cloth Config API", desc: "API de configuration commune pour de nombreux mods.", emoji: "⚙️", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/cloth-config" },
+  { name: "Athena", desc: "Système de coloration dynamique pour terrariumearth.", emoji: "🎨", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/athena" },
+  { name: "Resourceful Lib", desc: "Bibliothèque pour les mods de ThatGravyBoat.", emoji: "📦", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/resourceful-lib" },
+  { name: "Kotlin for Forge", desc: "Support du langage Kotlin pour les mods Forge.", emoji: "🅺", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/kotlin-for-forge" },
+  { name: "GlitchCore", desc: "Bibliothèque pour les mods de TheAdubbz.", emoji: "⚙️", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/glitchcore" },
+  { name: "YUNG's API", desc: "Bibliothèque commune pour les mods YUNG.", emoji: "📦", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/yungs-api" },
+  { name: "Bookshelf", desc: "Bibliothèque pour les mods de DarkhaxDev.", emoji: "📚", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/bookshelf" },
+  { name: "Collective", desc: "Bibliothèque partagée pour les mods de Serilum.", emoji: "📦", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/collective" },
+  { name: "Placebo", desc: "Bibliothèque pour les mods de Shadows_of_Fire.", emoji: "💊", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/placebo" },
+  { name: "Sophisticated Core", desc: "Bibliothèque pour Sophisticated Backpacks.", emoji: "🎒", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/sophisticated-core" },
+  { name: "Searchables", desc: "Champs de recherche dans les interfaces de mods.", emoji: "🔍", cat: ["api","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/searchables" },
+  { name: "Konkrete", desc: "Bibliothèque de base pour Keksuccino.", emoji: "⚙️", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/konkrete" },
+  { name: "Polymorph", desc: "Résout les conflits de recettes entre mods.", emoji: "🔀", cat: ["api","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/polymorph" },
+  { name: "Almost Unified", desc: "Unifie les ressources en double provenant de différents mods.", emoji: "🤝", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/almost-unified" },
+  { name: "FastWorkbench", desc: "Optimise les calculs de la table de craft.", emoji: "⚡", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/fastworkbench" },
+  { name: "FastFurnace", desc: "Optimise le traitement des fours.", emoji: "🔥", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/fastfurnace" },
+  { name: "FastSuite", desc: "Optimise les calculs de crafting des mods.", emoji: "⚡", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/fastsuite" },
+  { name: "Smooth Boot (Reloaded)", desc: "Réduit le lag lors du lancement de Minecraft.", emoji: "🚀", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/smooth-boot-reloaded" },
+  { name: "AddonsLib", desc: "Bibliothèque pour les add-ons Macaw.", emoji: "📦", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/addonslib" },
+  { name: "SuperMartijn642's Core Lib", desc: "Bibliothèque pour les mods de SuperMartijn642.", emoji: "📦", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/supermartijn642s-core-lib" },
+  { name: "SuperMartijn642's Config Lib", desc: "Système de config pour SuperMartijn642.", emoji: "⚙️", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/supermartijn642s-config-lib" },
+  { name: "libIPN", desc: "Bibliothèque pour Inventory Profiles Next.", emoji: "📦", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/libipn" },
+  { name: "iChunUtil", desc: "Bibliothèque pour les mods d'iChun.", emoji: "📦", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/ichunutil" },
+  { name: "CodeChicken Lib 1.8.+", desc: "Bibliothèque pour Ender Storage.", emoji: "🐔", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/codechicken-lib-1-8" },
+  { name: "Jade Addons", desc: "Extensions supplémentaires pour le mod Jade.", emoji: "🔍", cat: ["api","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/jade-addons" },
+  { name: "Serene Seasons - Pam's HC2 Compat", desc: "Compatibilité saisons et cultures HarvestCraft.", emoji: "🌡️", cat: ["api","agriculture"], url: "https://www.curseforge.com/minecraft/mc-mods/serene-seasons-pams-harvestcraft-2-crops-compat" },
+  { name: "Just Enough Breeding (JEBr)", desc: "Infos d'élevage et d'apprivoisement dans JEI.", emoji: "🐄", cat: ["api","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/justenoughbreeding" },
+  { name: "Just Enough Professions (JEP)", desc: "Affiche les métiers des villageois dans JEI.", emoji: "👔", cat: ["api","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/just-enough-professions-jep" },
+  { name: "Just Enough Resources (JER)", desc: "Où trouver chaque ressource, dans JEI.", emoji: "⛏️", cat: ["api","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/just-enough-resources-jer" },
+  { name: "Just Enough Effect Descriptions (JEED)", desc: "Description des effets de statuts dans JEI.", emoji: "💫", cat: ["api","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/just-enough-effect-descriptions-jeed" },
+  { name: "JEI Integration", desc: "Intégrations supplémentaires pour JEI.", emoji: "🔌", cat: ["api","qdv"], url: "https://www.curseforge.com/minecraft/mc-mods/jei-integration" },
+  { name: "Sodium/Embeddium Options API", desc: "API d'options pour les mods Embeddium.", emoji: "⚙️", cat: ["api"], url: "https://www.curseforge.com/minecraft/mc-mods/sodium-options-api" },
+  { name: "Macaw's TerraformersMC", desc: "Compat Macaw avec TerraformersMC.", emoji: "🌿", cat: ["api","decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/macaws-terraformersmc" },
+  { name: "Macaw's Biomes O' Plenty", desc: "Compat Macaw avec Biomes O' Plenty.", emoji: "🌲", cat: ["api","decoration"], url: "https://www.curseforge.com/minecraft/mc-mods/macaws-biomes-o-plenty" },
+];
 
-      // Decoy appears on every 4th or 6th score
-      if (score % 4 === 0 || score % 6 === 0) {
-        decoy.style.display = "block";
-        decoy.style.left = Math.random() * (window.innerWidth - 100) + "px";
-        decoy.style.top = Math.random() * (window.innerHeight - 100) + "px";
-      } else {
-        decoy.style.display = "none";
-      }
+let currentFilter = 'all';
 
-      // Speed up every 6 points
-      if (score % 6 === 0) {
-        dx *= 1.5;
-        dy *= 1.5;
-      }
+function renderMods(list) {
+  const grid = document.getElementById('modsGrid');
+  grid.innerHTML = '';
+  const noRes = document.getElementById('noResults');
+  if (!list.length) { noRes.style.display='block'; return; }
+  noRes.style.display='none';
+  list.forEach(mod => {
+    const card = document.createElement('div');
+    card.className = 'mod-card';
+    card.innerHTML = `
+      <div class="mod-emoji">${mod.emoji}</div>
+      <div class="mod-info">
+        <h4>${mod.name}</h4>
+        <p>${mod.desc}</p>
+        <div class="mod-tags">${mod.cat.map(c=>`<span class="mod-tag">${catLabel(c)}</span>`).join('')}</div>
+        <a href="${mod.url}" class="mod-link" target="_blank" rel="noopener">Voir sur CurseForge →</a>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
 
-      setTimeout(() => {
-        text.classList.remove('explode');
-        visible = true;
-      }, 1000);
-    });
+function catLabel(c) {
+  return {all:'Tous',decoration:'Déco',agriculture:'Farming',faune:'Faune',exploration:'Exploration',visual:'Visuels',qdv:'QoL',api:'API'}[c]||c;
+}
 
-    startBtn.addEventListener('click', () => {
-      menu.style.display = "none";
-      text.style.display = "block";
-      scoreboard.style.display = "none";
-      score = 0;
-      dx = dy = 2;
-      scoreDisplay.textContent = "Score: 0";
-      visible = true;
-      gameRunning = true;
-      startTimer();
-    });
+function filterMods() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let list = mods;
+  if (currentFilter !== 'all') list = list.filter(m => m.cat.includes(currentFilter));
+  if (q) list = list.filter(m => m.name.toLowerCase().includes(q) || m.desc.toLowerCase().includes(q));
+  renderMods(list);
+}
 
-    restartBtn.addEventListener('click', () => {
-      scoreboard.style.display = "none";
-      menu.style.display = "flex";
-    });
+function setFilter(cat, btn) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterMods();
+}
 
-    move();
-  </script>
+renderMods(mods);
+document.getElementById('countAll').textContent = mods.length;
+</script>
+<!-- JUNGLE OVERLAY -->
+<div id="jungle-overlay">
+  <img id="jungle-char"
+    src="https://raw.githubusercontent.com/SimWbug/CLeanerSTEROID/refs/heads/main/Jungle%20%20(2).png"
+    alt="character">
+
+  <div id="jungle-text">NON DÉSO 😂</div>
+</div>
+
+<script>
+function launchJungle() {
+  const overlay = document.getElementById('jungle-overlay');
+  // Reset animation by re-cloning the char element
+  const oldChar = document.getElementById('jungle-char');
+  const newChar = oldChar.cloneNode(true);
+  oldChar.parentNode.replaceChild(newChar, oldChar);
+
+  const oldText = document.getElementById('jungle-text');
+  const newText = oldText.cloneNode(true);
+  oldText.parentNode.replaceChild(newText, oldText);
+
+  overlay.classList.add('active');
+
+  // Hide after animation ends
+  setTimeout(() => {
+    overlay.classList.remove('active');
+  }, 3600);
+}
+</script>
+
 </body>
 </html>
