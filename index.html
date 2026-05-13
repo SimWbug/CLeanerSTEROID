@@ -665,6 +665,78 @@
     100% { opacity:0; transform:translate(-50%,-50%) scale(1); }
   }
 
+  /* ── HAPPYSIM ANIMATION ── */
+  #happysim-overlay {
+    position:fixed; inset:0; z-index:9000;
+    pointer-events:none;
+    overflow:hidden;
+    display:none;
+    background:rgba(0,0,0,0);
+  }
+
+  #happysim-overlay.active { display:block; }
+
+  #happysim-overlay::before {
+    content:'';
+    position:absolute; inset:0;
+    background:rgba(255,60,60,0.15);
+    animation:simFade 3.8s ease forwards;
+  }
+
+  @keyframes simFade {
+    0%   { opacity:0; }
+    10%  { opacity:1; }
+    80%  { opacity:1; }
+    100% { opacity:0; }
+  }
+
+  #happysim-char {
+    position:absolute;
+    bottom:-300px;
+    left:50%;
+    transform:translateX(-50%);
+    width:320px;
+    height:auto;
+    filter:drop-shadow(0 0 40px rgba(255,100,100,0.9));
+    animation:simBounceUp 3.8s ease forwards;
+  }
+
+  @keyframes simBounceUp {
+    0%   { bottom:-320px; transform:translateX(-50%) scale(0.8) rotate(-5deg); opacity:0; }
+    15%  { bottom:5%;     transform:translateX(-50%) scale(1.1) rotate(3deg);  opacity:1; }
+    25%  { bottom:8%;     transform:translateX(-50%) scale(0.95) rotate(-2deg); }
+    35%  { bottom:10%;    transform:translateX(-50%) scale(1.05) rotate(1deg); }
+    60%  { bottom:8%;     transform:translateX(-50%) scale(1) rotate(0deg); opacity:1; }
+    85%  { bottom:8%;     opacity:1; transform:translateX(-50%) scale(1); }
+    100% { bottom:-320px; opacity:0; transform:translateX(-50%) scale(0.7) rotate(10deg); }
+  }
+
+  #happysim-text {
+    position:absolute;
+    top:12%; left:50%;
+    transform:translate(-50%,-50%) scale(0.3);
+    font-family:'Bebas Neue', sans-serif;
+    font-size:clamp(2.5rem, 8vw, 6rem);
+    color:#fff;
+    text-shadow:0 0 30px rgba(255,80,80,1), 0 0 60px rgba(255,0,0,0.6), 0 4px 16px rgba(0,0,0,0.9);
+    letter-spacing:0.06em;
+    white-space:nowrap;
+    opacity:0;
+    animation:simTextPop 3.8s ease forwards;
+    pointer-events:none;
+    text-align:center;
+  }
+
+  @keyframes simTextPop {
+    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.3); }
+    20%  { opacity:0; transform:translate(-50%,-50%) scale(0.3); }
+    38%  { opacity:1; transform:translate(-50%,-50%) scale(1.2); }
+    48%  { transform:translate(-50%,-50%) scale(0.92); }
+    60%  { opacity:1; transform:translate(-50%,-50%) scale(1); }
+    82%  { opacity:1; }
+    100% { opacity:0; transform:translate(-50%,-50%) scale(1); }
+  }
+
   /* ── ANIMATIONS ── */
   @keyframes fadeUp {
     from { opacity:0; transform:translateY(20px); }
@@ -704,7 +776,7 @@
   </p>
 
   <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;align-items:center;">
-  <a href="https://drive.google.com/file/d/1eTKaBzkJUxVRoJRV0v-iyiHCz0qzsuAr/view?usp=drive_link"
+  <a href="https://drive.google.com/file/d/1yAXlr0igiTBNbDtqQUijOjLrNBPvBFnP/view?usp=sharing"
      class="btn-download" target="_blank" rel="noopener">
     <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
       <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -712,7 +784,7 @@
     Télécharger le Pack
   </a>
 
-  <button class="btn-help" onclick="launchJungle()">
+  <button class="btn-help" onclick="handleHelp()">
     ❓ Besoin d'aide ?
   </button>
   </div>
@@ -816,7 +888,7 @@
 <div class="banner" id="download">
   <h2>PRÊT À REJOINDRE LA GANG ?</h2>
   <p>Télécharge le pack, installe-le avec CurseForge ou Prism Launcher, et rejoint tes potes sur le serveur. La session t'attend.</p>
-  <a href="https://drive.google.com/file/d/1eTKaBzkJUxVRoJRV0v-iyiHCz0qzsuAr/view?usp=drive_link"
+  <a href="https://drive.google.com/file/d/1yAXlr0igiTBNbDtqQUijOjLrNBPvBFnP/view?usp=sharing"
      class="btn-dl-dark" target="_blank" rel="noopener">
     <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
       <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -828,7 +900,7 @@
 <!-- FOOTER -->
 <footer>
   <p>⚡ <strong>CleanGang Server Pack</strong> &nbsp;·&nbsp;
-  <a href="https://drive.google.com/file/d/1eTKaBzkJUxVRoJRV0v-iyiHCz0qzsuAr/view?usp=drive_link" target="_blank">Télécharger</a>
+  <a href="https://drive.google.com/file/d/1yAXlr0igiTBNbDtqQUijOjLrNBPvBFnP/view?usp=sharing" target="_blank">Télécharger</a>
   &nbsp;·&nbsp; Made with 💛 for the gang
   </p>
 </footer>
@@ -1075,28 +1147,51 @@ document.getElementById('countAll').textContent = mods.length;
   <img id="jungle-char"
     src="https://raw.githubusercontent.com/SimWbug/CLeanerSTEROID/refs/heads/main/Jungle%20%20(2).png"
     alt="character">
-
   <div id="jungle-text">NON DÉSO 😂</div>
 </div>
 
+<!-- HAPPYSIM OVERLAY -->
+<div id="happysim-overlay">
+  <div id="happysim-text">T'AS ASPIRÉ TON PC 💀</div>
+  <img id="happysim-char"
+    src="https://raw.githubusercontent.com/SimWbug/CLeanerSTEROID/refs/heads/main/happysim.png"
+    alt="happysim">
+</div>
+
 <script>
+let helpClickCount = 0;
+
 function launchJungle() {
   const overlay = document.getElementById('jungle-overlay');
-  // Reset animation by re-cloning the char element
   const oldChar = document.getElementById('jungle-char');
   const newChar = oldChar.cloneNode(true);
   oldChar.parentNode.replaceChild(newChar, oldChar);
-
   const oldText = document.getElementById('jungle-text');
   const newText = oldText.cloneNode(true);
   oldText.parentNode.replaceChild(newText, oldText);
-
   overlay.classList.add('active');
+  setTimeout(() => { overlay.classList.remove('active'); }, 3600);
+}
 
-  // Hide after animation ends
-  setTimeout(() => {
-    overlay.classList.remove('active');
-  }, 3600);
+function launchHappySim() {
+  const overlay = document.getElementById('happysim-overlay');
+  const oldChar = document.getElementById('happysim-char');
+  const newChar = oldChar.cloneNode(true);
+  oldChar.parentNode.replaceChild(newChar, oldChar);
+  const oldText = document.getElementById('happysim-text');
+  const newText = oldText.cloneNode(true);
+  oldText.parentNode.replaceChild(newText, oldText);
+  overlay.classList.add('active');
+  setTimeout(() => { overlay.classList.remove('active'); }, 3900);
+}
+
+function handleHelp() {
+  helpClickCount++;
+  if (helpClickCount % 2 === 0) {
+    launchHappySim();
+  } else {
+    launchJungle();
+  }
 }
 </script>
 
